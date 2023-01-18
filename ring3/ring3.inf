@@ -1,0 +1,87 @@
+;
+; ring3.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=ring3.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockDown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+ring3_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+ring3.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%ring3.DeviceDesc%=ring3_Device, Root\ring3 ; TODO: edit hw-id
+
+[ring3_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+ring3.sys
+
+;-------------- Service installation
+[ring3_Device.NT.Services]
+AddService = ring3,%SPSVCINST_ASSOCSERVICE%, ring3_Service_Inst
+
+; -------------- ring3 driver install sections
+[ring3_Service_Inst]
+DisplayName    = %ring3.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\ring3.sys
+
+;
+;--- ring3_Device Coinstaller installation ------
+;
+
+[ring3_Device.NT.CoInstallers]
+AddReg=ring3_Device_CoInstaller_AddReg
+CopyFiles=ring3_Device_CoInstaller_CopyFiles
+
+[ring3_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[ring3_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[ring3_Device.NT.Wdf]
+KmdfService =  ring3, ring3_wdfsect
+[ring3_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "ring3 Installation Disk"
+ring3.DeviceDesc = "ring3 Device"
+ring3.SVCDESC = "ring3 Service"
